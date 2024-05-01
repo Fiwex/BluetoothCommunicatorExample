@@ -16,6 +16,7 @@
 
 package com.bluetooth.communicatorexample.gui;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,21 +31,18 @@ import java.util.ArrayList;
 
 public class PeerListAdapter extends BaseAdapter {
     public static final int HOST = 1;
-    private ArrayList<Peer> array;
-    private LayoutInflater inflater;
-    private Callback callback;
-    private CustomAnimator animator = new CustomAnimator();
-    private Activity activity;
+    private final ArrayList<Peer> array;
+    private final LayoutInflater inflater;
+    private final Callback callback;
     private boolean isClickable = true;
     private boolean showToast = false;
 
     public PeerListAdapter(Activity activity, ArrayList<Peer> array, Callback callback) {
         this.array = array;
         this.callback = callback;
-        if (array.size() > 0) {
+        if (!array.isEmpty()) {
             callback.onFirstItemAdded();
         }
-        this.activity = activity;
         notifyDataSetChanged();
         inflater = activity.getLayoutInflater();
     }
@@ -79,12 +77,12 @@ public class PeerListAdapter extends BaseAdapter {
         return 1;
     }
 
+    @SuppressLint("InflateParams")
     @Override
     public View getView(int position, View view, ViewGroup viewGroup) {
         final Object item = getItem(position);
         int itemType = getItemViewType(position);
         if (itemType == HOST) {
-            Peer guiPeer = (Peer) item;
             String peerName = ((Peer) item).getName();
             if (view == null) {
                 view = inflater.inflate(R.layout.component_row, null);
@@ -96,7 +94,7 @@ public class PeerListAdapter extends BaseAdapter {
     }
 
     public synchronized void add(Peer peer) {
-        if (array.size() == 0) {
+        if (array.isEmpty()) {
             callback.onFirstItemAdded();
         }
         array.add(peer);
@@ -112,15 +110,11 @@ public class PeerListAdapter extends BaseAdapter {
         return array.get(i);
     }
 
-    public int indexOf(Peer object) {
-        return array.indexOf(object);
-    }
-
     public int indexOfPeer(String uniqueName) {
         for (int i = 0; i < array.size(); i++) {
             Peer peer = array.get(i);
             String uniqueName1 = peer.getUniqueName();
-            if (uniqueName1.length() > 0 && uniqueName1.equals(uniqueName)) {
+            if (!uniqueName1.isEmpty() && uniqueName1.equals(uniqueName)) {
                 return i;
             }
         }
@@ -131,7 +125,7 @@ public class PeerListAdapter extends BaseAdapter {
         if (array.remove(peer)) {
             notifyDataSetChanged();
         }
-        if (array.size() == 0) {
+        if (array.isEmpty()) {
             // deleting the listview
             callback.onLastItemRemoved();
         }
@@ -140,17 +134,9 @@ public class PeerListAdapter extends BaseAdapter {
     public synchronized void clear() {
         array.clear();
         notifyDataSetChanged();
-        if (array.size() == 0) {
+        if (array.isEmpty()) {
             callback.onLastItemRemoved();
         }
-    }
-
-    public int size() {
-        return array.size();
-    }
-
-    public void setCallback(Callback callback) {
-        this.callback = callback;
     }
 
     public boolean isClickable() {
@@ -164,10 +150,6 @@ public class PeerListAdapter extends BaseAdapter {
 
     public boolean getShowToast() {
         return showToast;
-    }
-
-    public void setShowToast(boolean showToast) {
-        this.showToast = showToast;
     }
 
     public Callback getCallback() {

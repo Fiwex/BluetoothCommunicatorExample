@@ -18,13 +18,11 @@ package com.bluetooth.communicatorexample.fragments;
 
 import android.animation.Animator;
 import android.bluetooth.BluetoothAdapter;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -36,6 +34,8 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 
+import com.bluetooth.communicator.BluetoothCommunicator;
+import com.bluetooth.communicator.Peer;
 import com.bluetooth.communicator.tools.Timer;
 import com.bluetooth.communicatorexample.Global;
 import com.bluetooth.communicatorexample.MainActivity;
@@ -46,8 +46,6 @@ import com.bluetooth.communicatorexample.gui.GuiTools;
 import com.bluetooth.communicatorexample.gui.PeerListAdapter;
 import com.bluetooth.communicatorexample.gui.RequestDialog;
 import com.bluetooth.communicatorexample.tools.Tools;
-import com.bluetooth.communicator.BluetoothCommunicator;
-import com.bluetooth.communicator.Peer;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -70,7 +68,7 @@ public class PairingFragment extends Fragment {
     private TextView noBluetoothLe;
     private final Object lock = new Object();
     private MainActivity.Callback communicatorCallback;
-    private CustomAnimator animator = new CustomAnimator();
+    private final CustomAnimator animator = new CustomAnimator();
     private Peer connectingPeer;
     protected Global global;
     protected MainActivity activity;
@@ -80,7 +78,7 @@ public class PairingFragment extends Fragment {
     protected boolean isLoadingAnimating;  // animation appearance or disappearance of the loading
     protected ButtonSearch buttonSearch;
     private ProgressBar loading;
-    private ArrayList<CustomAnimator.EndListener> listeners = new ArrayList<>();
+    private final ArrayList<CustomAnimator.EndListener> listeners = new ArrayList<>();
 
     public PairingFragment() {
         // Required empty public constructor
@@ -104,24 +102,9 @@ public class PairingFragment extends Fragment {
             public void onConnectionRequest(final Peer peer) {
                 super.onConnectionRequest(peer);
                 if (peer != null) {
-                    String time = DateFormat.getDateTimeInstance().format(new Date());
-                    connectionRequestDialog = new RequestDialog(activity, "Accept connection request from " + peer.getName() + " ?", 15000, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            activity.acceptConnection(peer);
-                        }
-                    }, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            activity.rejectConnection(peer);
-                        }
-                    });
-                    connectionRequestDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            connectionRequestDialog = null;
-                        }
-                    });
+                    DateFormat.getDateTimeInstance().format(new Date());
+                    connectionRequestDialog = new RequestDialog(activity, "Accept connection request from " + peer.getName() + " ?", 15000, (dialog, which) -> activity.acceptConnection(peer), (dialog, which) -> activity.rejectConnection(peer));
+                    connectionRequestDialog.setOnCancelListener(dialog -> connectionRequestDialog = null);
                     connectionRequestDialog.show();
                 }
             }
@@ -272,18 +255,15 @@ public class PairingFragment extends Fragment {
 
         // setting of array adapter
         initializePeerList();
-        listViewGui.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                synchronized (lock) {
-                    if (listView != null) {
-                        // start the pop up and then connect to the peer
-                        if (listView.isClickable()) {
-                            Peer item = listView.get(i);
-                            connect(item);
-                        } else {
-                            listView.getCallback().onClickNotAllowed(listView.getShowToast());
-                        }
+        listViewGui.setOnItemClickListener((adapterView, view, i, l) -> {
+            synchronized (lock) {
+                if (listView != null) {
+                    // start the pop up and then connect to the peer
+                    if (listView.isClickable()) {
+                        Peer item = listView.get(i);
+                        connect(item);
+                    } else {
+                        listView.getCallback().onClickNotAllowed(listView.getShowToast());
                     }
                 }
             }
@@ -301,15 +281,12 @@ public class PairingFragment extends Fragment {
             startSearch();
         }
 
-        buttonSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (activity.isSearching()) {
-                    activity.stopSearch(false);
-                    clearFoundPeers();
-                } else {
-                    startSearch();
-                }
+        buttonSearch.setOnClickListener(v -> {
+            if (activity.isSearching()) {
+                activity.stopSearch(false);
+                clearFoundPeers();
+            } else {
+                startSearch();
             }
         });
     }
@@ -341,21 +318,15 @@ public class PairingFragment extends Fragment {
     private void connect(final Peer peer) {
         connectingPeer = peer;
         confirmConnectionPeer = peer;
-        connectionConfirmDialog = new RequestDialog(activity, "Are you sure to connect with " + peer.getName() + "?", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                deactivateInputs();
-                appearLoading(null);
-                activity.connect(peer);
-                startConnectionTimer();
-            }
+        connectionConfirmDialog = new RequestDialog(activity, "Are you sure to connect with " + peer.getName() + "?", (dialog, which) -> {
+            deactivateInputs();
+            appearLoading(null);
+            activity.connect(peer);
+            startConnectionTimer();
         }, null);
-        connectionConfirmDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                confirmConnectionPeer = null;
-                connectionConfirmDialog = null;
-            }
+        connectionConfirmDialog.setOnCancelListener(dialog -> {
+            confirmConnectionPeer = null;
+            connectionConfirmDialog = null;
         });
         connectionConfirmDialog.show();
     }
@@ -436,7 +407,7 @@ public class PairingFragment extends Fragment {
             }
         };
 
-        listView = new PeerListAdapter(activity, new ArrayList<Peer>(), callback);
+        listView = new PeerListAdapter(activity, new ArrayList<>(), callback);
         listViewGui.setAdapter(listView);
     }
 
@@ -566,7 +537,7 @@ public class PairingFragment extends Fragment {
 
     private void notifyLoadingAnimationEnd() {
         // notify finished animation and elimination of listeners
-        while (listeners.size() > 0) {
+        while (!listeners.isEmpty()) {
             listeners.remove(0).onAnimationEnd();
         }
     }

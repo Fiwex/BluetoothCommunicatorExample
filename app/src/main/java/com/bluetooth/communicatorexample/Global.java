@@ -35,7 +35,7 @@ public class Global extends Application {
         ArrayList<Character> supportedCharacters = BluetoothTools.getSupportedUTFCharacters(this);
         boolean equals = true;
         for (int i = 0; i < name.length() && equals; i++) {
-            if (!supportedCharacters.contains(Character.valueOf(name.charAt(i)))) {
+            if (!supportedCharacters.contains(name.charAt(i))) {
                 equals = false;
             }
         }

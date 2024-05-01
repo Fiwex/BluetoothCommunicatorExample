@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
     };
     private Global global;
     private int currentFragment = -1;
-    private ArrayList<Callback> clientsCallbacks = new ArrayList<>();
+    private final ArrayList<Callback> clientsCallbacks = new ArrayList<>();
     private CoordinatorLayout fragmentContainer;
 
 
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // when we return to the app's gui we choose which fragment to start based on connection status
-        if (global.getBluetoothCommunicator().getConnectedPeersList().size() == 0) {
+        if (global.getBluetoothCommunicator().getConnectedPeersList().isEmpty()) {
             setFragment(DEFAULT_FRAGMENT);
         } else {
             setFragment(CONVERSATION_FRAGMENT);
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void exitFromConversation() {
-        if (global.getBluetoothCommunicator().getConnectedPeersList().size() > 0) {
+        if (!global.getBluetoothCommunicator().getConnectedPeersList().isEmpty()) {
             Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
             if (fragment instanceof ConversationFragment) {
                 ConversationFragment conversationFragment = (ConversationFragment) fragment;
@@ -243,21 +243,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public int stopSearch(boolean tryRestoreBluetoothStatus) {
+    public void stopSearch(boolean tryRestoreBluetoothStatus) {
         int advertisingCode = global.getBluetoothCommunicator().stopAdvertising(tryRestoreBluetoothStatus);
         int discoveringCode = global.getBluetoothCommunicator().stopDiscovery(tryRestoreBluetoothStatus);
         if (advertisingCode == discoveringCode) {
-            return advertisingCode;
+            return;
         }
         if (advertisingCode == BluetoothCommunicator.BLUETOOTH_LE_NOT_SUPPORTED || discoveringCode == BluetoothCommunicator.BLUETOOTH_LE_NOT_SUPPORTED) {
-            return BluetoothCommunicator.BLUETOOTH_LE_NOT_SUPPORTED;
+            return;
         }
-        if (advertisingCode == BluetoothCommunicator.SUCCESS || discoveringCode == BluetoothCommunicator.SUCCESS) {
-            if (advertisingCode == BluetoothCommunicator.ALREADY_STOPPED || discoveringCode == BluetoothCommunicator.ALREADY_STOPPED) {
-                return BluetoothCommunicator.SUCCESS;
-            }
-        }
-        return BluetoothCommunicator.ERROR;
     }
 
     public boolean isSearching() {
@@ -277,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
         global.getBluetoothCommunicator().rejectConnection(peer);
     }
 
-    public int disconnect(Peer peer) {
-        return global.getBluetoothCommunicator().disconnect(peer);
+    public void disconnect(Peer peer) {
+        global.getBluetoothCommunicator().disconnect(peer);
     }
 
     public CoordinatorLayout getFragmentContainer() {

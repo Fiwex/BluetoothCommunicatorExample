@@ -49,6 +49,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.Objects;
+
 
 public class ConversationFragment extends Fragment {
     private ProgressBar loading;
@@ -94,7 +96,7 @@ public class ConversationFragment extends Fragment {
                 mAdapter.addMessage(message);
                 //smooth scroll
                 smoothScroller.setTargetPosition(mAdapter.getItemCount() - 1);
-                mRecyclerView.getLayoutManager().startSmoothScroll(smoothScroller);
+                Objects.requireNonNull(mRecyclerView.getLayoutManager()).startSmoothScroll(smoothScroller);
             }
 
             @Override
@@ -150,31 +152,25 @@ public class ConversationFragment extends Fragment {
             }
         };
 
-        mAdapter = new MessagesAdapter(global.getBluetoothCommunicator().getUniqueName(), new MessagesAdapter.Callback() {
-            @Override
-            public void onFirstItemAdded() {
-                description.setVisibility(View.GONE);
-                mRecyclerView.setVisibility(View.VISIBLE);
-            }
+        mAdapter = new MessagesAdapter(global.getBluetoothCommunicator().getUniqueName(), () -> {
+            description.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
         });
         mRecyclerView.setAdapter(mAdapter);
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (global.getBluetoothCommunicator().getConnectedPeersList().size() > 0) {
-                    //sending message
-                    if (editText.getText().length() > 0) {
-                        //the sender will be inserted by the receiver device, so you don't need to enter it
-                        Message message = new Message(global, "m", editText.getText().toString(), global.getBluetoothCommunicator().getConnectedPeersList().get(0));
-                        global.getBluetoothCommunicator().sendMessage(message);
-                        editText.setText("");
-                        //aggiunta del messaggio alla lista dei messaggi
-                        mAdapter.addMessage(message);
-                        //smooth scroll
-                        smoothScroller.setTargetPosition(mAdapter.getItemCount() - 1);
-                        mRecyclerView.getLayoutManager().startSmoothScroll(smoothScroller);
-                    }
+        sendButton.setOnClickListener(v -> {
+            if (!global.getBluetoothCommunicator().getConnectedPeersList().isEmpty()) {
+                //sending message
+                if (editText.getText().length() > 0) {
+                    //the sender will be inserted by the receiver device, so you don't need to enter it
+                    Message message = new Message(global, "m", editText.getText().toString(), global.getBluetoothCommunicator().getConnectedPeersList().get(0));
+                    global.getBluetoothCommunicator().sendMessage(message);
+                    editText.setText("");
+                    //aggiunta del messaggio alla lista dei messaggi
+                    mAdapter.addMessage(message);
+                    //smooth scroll
+                    smoothScroller.setTargetPosition(mAdapter.getItemCount() - 1);
+                    Objects.requireNonNull(mRecyclerView.getLayoutManager()).startSmoothScroll(smoothScroller);
                 }
             }
         });

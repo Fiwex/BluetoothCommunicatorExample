@@ -38,26 +38,14 @@ import java.util.ArrayList;
 public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int MINE = 0;
     private static final int NON_MINE = 1;
-    private ArrayList<Message> mResults = new ArrayList<>();
-    private Callback callback;
-    private String myUniqueName;
+    private final ArrayList<Message> mResults = new ArrayList<>();
+    private final Callback callback;
+    private final String myUniqueName;
 
 
     public MessagesAdapter(String myUniqueName, @NonNull Callback callback) {
         this.myUniqueName = myUniqueName;
         this.callback = callback;
-    }
-
-    public MessagesAdapter(ArrayList<Message> messages, String myUniqueName, @NonNull Callback callback) {
-        this.myUniqueName = myUniqueName;
-        this.callback = callback;
-        if (messages != null) {
-            if (messages.size() > 0) {
-                callback.onFirstItemAdded();
-            }
-            mResults.addAll(messages);
-            notifyItemRangeInserted(0, messages.size() - 1);
-        }
     }
 
     @NonNull
@@ -123,22 +111,10 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         notifyItemInserted(getItemCount() - 1);
     }
 
-    public Message getMessage(int index) {
-        return mResults.get(index);
-    }
-
-    public int indexOf(Message message) {
-        return mResults.indexOf(message);
-    }
-
-    public ArrayList<Message> getMessages() {
-        return mResults;
-    }
-
     /**
      * The layout for each item in the RecicleView list
      */
-    private class ReceivedHolder extends RecyclerView.ViewHolder implements MessageHolder {
+    private static class ReceivedHolder extends RecyclerView.ViewHolder implements MessageHolder {
         TextView text;
 
         LinearLayout containerSender;
@@ -165,7 +141,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     /**
      * The layout for each item in the RecicleView list
      */
-    private class SendHolder extends RecyclerView.ViewHolder implements MessageHolder {
+    private static class SendHolder extends RecyclerView.ViewHolder implements MessageHolder {
         TextView text;
         CardView card;
 

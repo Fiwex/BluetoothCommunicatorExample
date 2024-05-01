@@ -16,6 +16,7 @@
 
 package com.bluetooth.communicatorexample.gui;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
@@ -34,8 +35,7 @@ public class ButtonSearch extends AppCompatImageButton {
     private boolean searching = true;
     private boolean visible = true;
     private boolean animating = false;
-    private ArrayList<CustomAnimator.EndListener> listeners = new ArrayList<>();
-    private OnClickListener clickListener;
+    private final ArrayList<CustomAnimator.EndListener> listeners = new ArrayList<>();
     private int drawableId = R.drawable.cancel_icon;
 
 
@@ -184,15 +184,14 @@ public class ButtonSearch extends AppCompatImageButton {
 
     private void notifySetVisibleSuccess() {
         // finished animation notification and elimination of listeners
-        while (listeners.size() > 0) {
+        while (!listeners.isEmpty()) {
             listeners.remove(0).onAnimationEnd();
         }
     }
 
     @Override
     public void setOnClickListener(@Nullable OnClickListener l) {
-        clickListener = l;
-        super.setOnClickListener(clickListener);
+        super.setOnClickListener(l);
     }
 
     public boolean isSearching() {
@@ -204,7 +203,7 @@ public class ButtonSearch extends AppCompatImageButton {
     }
 
     public Drawable getDrawable(int id) {
-        Drawable drawable = getResources().getDrawable(id, null);
+        @SuppressLint("UseCompatLoadingForDrawables") Drawable drawable = getResources().getDrawable(id, null);
         drawable.setTintList(getColorStateList(getContext(), R.color.primary));
         return drawable;
     }
